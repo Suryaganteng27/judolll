@@ -3,21 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D 8-Ball Pool Game</title>
+    <title>Realistic 8-Ball Pool Pro</title>
     <style>
         * {
             box-sizing: border-box;
             user-select: none;
+            -webkit-user-select: none;
         }
         body {
             margin: 0;
             overflow: hidden;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0d0d11;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0b0d12;
             color: #fff;
         }
 
-        #ui-container {
+        #ui-layer {
             position: absolute;
             top: 0;
             left: 0;
@@ -27,19 +28,21 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 20px;
+            padding: 15px 25px;
         }
 
+        /* Top Bar Scoreboard */
         .hud-panel {
-            background: rgba(15, 15, 25, 0.85);
-            padding: 12px 20px;
-            border-radius: 10px;
+            background: rgba(12, 16, 26, 0.9);
+            padding: 10px 20px;
+            border-radius: 12px;
             border: 1px solid rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(8px);
+            backdrop-filter: blur(10px);
             pointer-events: auto;
             display: flex;
-            gap: 20px;
+            gap: 25px;
             align-items: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
         }
 
         .top-bar {
@@ -49,146 +52,173 @@
             width: 100%;
         }
 
-        .player-info {
-            font-size: 1.1rem;
-            font-weight: bold;
-            padding: 6px 12px;
-            border-radius: 6px;
-            transition: all 0.3s;
-        }
-
-        .active-player {
-            background: rgba(76, 175, 80, 0.3);
-            border: 1px solid #4CAF50;
-            color: #4CAF50;
-            text-shadow: 0 0 8px rgba(76, 175, 80, 0.8);
-        }
-
-        #timer {
-            font-size: 1.4rem;
-            font-weight: bold;
-            color: #ff9800;
-        }
-
-        #controls {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
+        .player-card {
             display: flex;
+            align-items: center;
             gap: 12px;
-            background: rgba(15, 15, 25, 0.9);
-            padding: 12px 20px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            pointer-events: auto;
+            padding: 6px 16px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.05);
         }
 
-        button, select {
-            padding: 8px 16px;
-            font-size: 0.9rem;
-            font-weight: bold;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            background: #2196F3;
-            color: white;
-            transition: all 0.2s;
-            outline: none;
+        .player-card.active {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.25), rgba(46, 125, 50, 0.4));
+            border: 1px solid #4CAF50;
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.5);
         }
 
-        button:hover, select:hover {
-            background: #1e88e5;
-            transform: translateY(-2px);
+        .player-name {
+            font-size: 1rem;
+            font-weight: 700;
         }
 
+        .player-type {
+            font-size: 0.75rem;
+            color: #aaa;
+            text-transform: uppercase;
+        }
+
+        #timer-box {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #ff9800;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        /* Power Meter (Kanan) */
         #power-container {
             position: absolute;
             right: 25px;
             top: 50%;
             transform: translateY(-50%);
-            width: 26px;
-            height: 220px;
-            background: rgba(0, 0, 0, 0.6);
-            border-radius: 13px;
-            overflow: hidden;
-            border: 2px solid rgba(255, 255, 255, 0.5);
+            width: 32px;
+            height: 280px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 16px;
+            padding: 4px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
             pointer-events: auto;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
         }
 
         #power-bar {
             width: 100%;
             height: 0%;
-            background: linear-gradient(to top, #4CAF50, #ff9800, #f44336);
+            background: linear-gradient(to top, #4CAF50, #ffeb3b, #f44336);
+            border-radius: 10px;
             position: absolute;
-            bottom: 0;
+            bottom: 4px;
+            left: 0;
+            right: 0;
+            margin: auto;
+            width: calc(100% - 8px);
             transition: height 0.05s linear;
+        }
+
+        /* Controls Bottom Bar */
+        #controls-bar {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+            background: rgba(12, 16, 26, 0.95);
+            padding: 10px 20px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            pointer-events: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+        }
+
+        button, select {
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            background: #2196F3;
+            color: white;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        button:hover, select:hover {
+            background: #1e88e5;
+            transform: scale(1.05);
         }
 
         #notification {
             position: absolute;
-            top: 25%;
+            top: 22%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 2rem;
-            font-weight: bold;
+            font-size: 2.2rem;
+            font-weight: 900;
             color: #fff;
-            text-shadow: 0 0 10px rgba(0, 0, 0, 0.9), 0 0 20px rgba(33, 150, 243, 0.8);
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.9), 0 0 25px rgba(33, 150, 243, 0.8);
             opacity: 0;
-            transition: opacity 0.4s ease-in-out;
+            transition: opacity 0.3s ease;
             pointer-events: none;
             text-align: center;
+            letter-spacing: 1px;
         }
 
-        #instructions {
-            position: absolute;
-            left: 20px;
-            bottom: 20px;
-            font-size: 0.85rem;
-            color: #aaa;
-            background: rgba(0,0,0,0.6);
-            padding: 10px 15px;
-            border-radius: 8px;
-            pointer-events: auto;
+        .ball-badge {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 5px;
+            vertical-align: middle;
+            border: 1px solid #fff;
         }
     </style>
 
-    <!-- Library Three.js & Cannon.js -->
+    <!-- Three.js (Grafik 3D) & Cannon.js (Fisika Presisi) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
 </head>
 <body>
 
-    <div id="ui-container">
+    <div id="ui-layer">
         <div class="top-bar">
             <div class="hud-panel">
-                <div class="player-info active-player" id="p1-status">P1 (Pemain 1): <span id="p1-score">0</span></div>
-                <div class="player-info" id="p2-status">P2 (Komputer): <span id="p2-score">0</span></div>
+                <div class="player-card active" id="p1-card">
+                    <div>
+                        <div class="player-name">Pemain 1</div>
+                        <div class="player-type" id="p1-type">Semua Bola</div>
+                    </div>
+                </div>
+                <div class="player-card" id="p2-card">
+                    <div>
+                        <div class="player-name" id="p2-name">Komputer</div>
+                        <div class="player-type" id="p2-type">Semua Bola</div>
+                    </div>
+                </div>
             </div>
+
             <div class="hud-panel">
-                <div>Waktu: <span id="timer">30</span>s</div>
+                <div id="timer-box">30</div>
             </div>
         </div>
 
-        <div id="notification">Mulai Main!</div>
+        <div id="notification">8-BALL POOL</div>
 
-        <div id="instructions">
-            <b>Kontrol:</b><br>
-            • Panah <b>← / →</b> : Atur Arah Stik<br>
-            • Tahan <b>SPASI</b> : Isi Tenaga Pukulan<br>
-            • Lepas <b>SPASI</b> : Tembak Bola
-        </div>
-
-        <div id="controls">
-            <select id="mode-select" onchange="changeMode(this.value)">
-                <option value="ai">Versi Computer (VS AI)</option>
-                <option value="pvp">Bermain Berdua (VS Player)</option>
+        <div id="controls-bar">
+            <select id="mode-select" onchange="setGameMode(this.value)">
+                <option value="ai">VS Komputer (AI)</option>
+                <option value="pvp">Bermain Berdua (2 Players)</option>
             </select>
-            <select id="level-select" onchange="changeLevel(this.value)">
-                <option value="easy">Level: Mudah</option>
-                <option value="medium" selected>Level: Sedang</option>
-                <option value="hard">Level: Sulit</option>
+            <select id="level-select" onchange="setAiLevel(this.value)">
+                <option value="easy">AI: Mudah</option>
+                <option value="medium" selected>AI: Sedang</option>
+                <option value="hard">AI: Sulit (Master)</option>
             </select>
+            <button onclick="toggleCameraView()">Kamera: <span id="cam-mode-text">3D</span></button>
             <button onclick="resetGame()">Reset Game</button>
         </div>
 
@@ -198,30 +228,30 @@
     </div>
 
     <script>
-        // --- System Web Audio (Efek Suara Sintetis Tanpa Eksternal File) ---
+        // --- Web Audio API (Efek Suara Sintetis Realistis) ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-        function playSound(type, val = 1) {
+        function playSound(type, intensity = 1) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
 
             if (type === 'hit') {
                 osc.type = 'triangle';
-                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(180, audioCtx.currentTime);
                 osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.08);
-                gain.gain.setValueAtTime(Math.min(val, 1), audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+                gain.gain.setValueAtTime(Math.min(intensity, 1), audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
                 osc.start();
                 osc.stop(audioCtx.currentTime + 0.08);
             } else if (type === 'pocket') {
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(250, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(60, audioCtx.currentTime + 0.25);
-                gain.gain.setValueAtTime(0.8, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+                osc.frequency.setValueAtTime(260, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.25);
+                gain.gain.setValueAtTime(0.7, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
                 osc.start();
@@ -233,99 +263,120 @@
         let gameMode = 'ai';
         let aiLevel = 'medium';
         let currentPlayer = 1;
-        let p1Score = 0, p2Score = 0;
-        let timeLeft = 30;
+        let playerGroup = { 1: null, 2: null }; // 'solid' atau 'striped'
+        let timer = 30;
         let timerInterval = null;
 
         let aimAngle = 0;
         let power = 0;
-        let isCharging = false;
+        let isChargingPower = false;
+        let isAimingWithMouse = false;
         let canShoot = true;
+        let cameraMode3D = true;
 
-        // --- Setup Scene Three.js & Physics Engine Cannon.js ---
+        // --- Inisialisasi Three.js & Cannon.js ---
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x0a0a10);
+        scene.background = new THREE.Color(0x08090d);
 
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 18, 14);
-        camera.lookAt(0, 0, 0);
-
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         document.body.appendChild(renderer.domElement);
 
-        // Lights
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
         scene.add(ambientLight);
 
-        const light1 = new THREE.DirectionalLight(0xffffff, 0.8);
-        light1.position.set(0, 20, 5);
+        const light1 = new THREE.SpotLight(0xffffff, 1);
+        light1.position.set(0, 25, 0);
         light1.castShadow = true;
+        light1.shadow.mapSize.width = 2048;
+        light1.shadow.mapSize.height = 2048;
         scene.add(light1);
 
-        // Physics World
+        // World Physics
         const world = new CANNON.World();
         world.gravity.set(0, -9.82, 0);
 
-        // --- Membuat Meja Biliar & Dinding (Table & Rails) ---
-        const tableWidth = 10, tableLength = 18;
-        
-        // Permukaan Meja
-        const tableGeo = new THREE.BoxGeometry(tableWidth, 0.4, tableLength);
-        const tableMat = new THREE.MeshStandardMaterial({ color: 0x0f6b38, roughness: 0.3 });
+        // --- Meja Biliar Standard (Rasio 2:1) ---
+        const tableW = 10, tableL = 20;
+
+        // Karpet Meja
+        const tableGeo = new THREE.BoxGeometry(tableW, 0.4, tableL);
+        const tableMat = new THREE.MeshStandardMaterial({ color: 0x0c6838, roughness: 0.3 });
         const tableMesh = new THREE.Mesh(tableGeo, tableMat);
         tableMesh.position.y = -0.2;
         tableMesh.receiveShadow = true;
         scene.add(tableMesh);
 
-        const tableBody = new CANNON.Body({ mass: 0, shape: new CANNON.Box(new CANNON.Vec3(tableWidth / 2, 0.2, tableLength / 2)) });
+        const tableBody = new CANNON.Body({ mass: 0, shape: new CANNON.Box(new CANNON.Vec3(tableW/2, 0.2, tableL/2)) });
         tableBody.position.y = -0.2;
         world.addBody(tableBody);
 
-        // Pockets / Lubang (6 Lubang)
+        // 6 Lubang (Pockets)
         const pocketRadius = 0.65;
         const pockets = [
-            { x: -4.6, z: -8.5 }, { x: 4.6, z: -8.5 },
+            { x: -4.6, z: -9.4 }, { x: 4.6, z: -9.4 },
             { x: -4.8, z: 0 },    { x: 4.8, z: 0 },
-            { x: -4.6, z: 8.5 },  { x: 4.6, z: 8.5 }
+            { x: -4.6, z: 9.4 },  { x: 4.6, z: 9.4 }
         ];
 
         pockets.forEach(p => {
             const pGeo = new THREE.CylinderGeometry(pocketRadius, pocketRadius, 0.5, 32);
-            const pMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+            const pMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
             const pMesh = new THREE.Mesh(pGeo, pMat);
             pMesh.position.set(p.x, -0.01, p.z);
             scene.add(pMesh);
         });
 
-        // Dinding Pembatas (Borders)
-        function createWall(x, z, w, d) {
-            const wallGeo = new THREE.BoxGeometry(w, 0.8, d);
-            const wallMat = new THREE.MeshStandardMaterial({ color: 0x3d1e03 });
-            const wallMesh = new THREE.Mesh(wallGeo, wallMat);
-            wallMesh.position.set(x, 0.3, z);
-            wallMesh.castShadow = true;
-            scene.add(wallMesh);
+        // Dinding Pembatas (Cushions)
+        function createCushion(x, z, w, d) {
+            const geo = new THREE.BoxGeometry(w, 0.8, d);
+            const mat = new THREE.MeshStandardMaterial({ color: 0x2d1706, roughness: 0.2 });
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.position.set(x, 0.3, z);
+            mesh.castShadow = true;
+            scene.add(mesh);
 
-            const wallBody = new CANNON.Body({ mass: 0, shape: new CANNON.Box(new CANNON.Vec3(w/2, 0.4, d/2)) });
-            wallBody.position.set(x, 0.3, z);
-            world.addBody(wallBody);
+            const body = new CANNON.Body({ mass: 0, shape: new CANNON.Box(new CANNON.Vec3(w/2, 0.4, d/2)) });
+            body.position.set(x, 0.3, z);
+            world.addBody(body);
         }
 
-        createWall(-5.3, 0, 0.6, tableLength); // Kiri
-        createWall(5.3, 0, 0.6, tableLength);  // Kanan
-        createWall(0, -9.3, tableWidth, 0.6);  // Atas
-        createWall(0, 9.3, tableWidth, 0.6);   // Bawah
+        createCushion(-5.3, 0, 0.6, tableL); // Kiri
+        createCushion(5.3, 0, 0.6, tableL);  // Kanan
+        createCushion(0, -10.3, tableW, 0.6); // Atas
+        createCushion(0, 10.3, tableW, 0.6);  // Bawah
 
-        // --- Bola Biliar & Fisika ---
+        // --- Bola Biliar (Solid & Striped) ---
         const ballRadius = 0.32;
         const balls = [];
         const ballBodies = [];
 
-        function createBall(x, z, color, isCue = false) {
+        const ballData = [
+            { num: 0, color: 0xffffff, type: 'cue' },
+            { num: 1, color: 0xffd700, type: 'solid' },  // Yellow
+            { num: 2, color: 0x0000ff, type: 'solid' },  // Blue
+            { num: 3, color: 0xff0000, type: 'solid' },  // Red
+            { num: 4, color: 0x4b0082, type: 'solid' },  // Purple
+            { num: 5, color: 0xff8c00, type: 'solid' },  // Orange
+            { num: 6, color: 0x008000, type: 'solid' },  // Green
+            { num: 7, color: 0x800000, type: 'solid' },  // Maroon
+            { num: 8, color: 0x111111, type: '8ball' },  // Black
+            { num: 9, color: 0xffd700, type: 'striped' },
+            { num: 10, color: 0x0000ff, type: 'striped' },
+            { num: 11, color: 0xff0000, type: 'striped' },
+            { num: 12, color: 0x4b0082, type: 'striped' },
+            { num: 13, color: 0xff8c00, type: 'striped' },
+            { num: 14, color: 0x008000, type: 'striped' },
+            { num: 15, color: 0x800000, type: 'striped' }
+        ];
+
+        function createBall(x, z, info) {
             const geo = new THREE.SphereGeometry(ballRadius, 32, 32);
-            const mat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.1, metalness: 0.1 });
+            const mat = new THREE.MeshStandardMaterial({ color: info.color, roughness: 0.1, metalness: 0.05 });
             const mesh = new THREE.Mesh(geo, mat);
             mesh.castShadow = true;
             scene.add(mesh);
@@ -333,8 +384,8 @@
             const shape = new CANNON.Sphere(ballRadius);
             const body = new CANNON.Body({ mass: 0.8, shape: shape });
             body.position.set(x, ballRadius, z);
-            body.linearDamping = 0.35;
-            body.angularDamping = 0.35;
+            body.linearDamping = 0.3;
+            body.angularDamping = 0.3;
 
             body.addEventListener("collide", (e) => {
                 const vel = e.contact.getImpactVelocityAlongNormal();
@@ -342,70 +393,72 @@
             });
 
             world.addBody(body);
-            balls.push(mesh);
+            balls.push({ mesh, body, info });
             ballBodies.push(body);
-
-            return { mesh, body, isCue };
         }
 
-        // Bola Putih (Cue Ball)
-        const cueBall = createBall(0, 4.5, 0xffffff, true);
+        // Bola Putih
+        createBall(0, 5, ballData[0]);
 
-        // Susunan Bola Segitiga
-        const ballColors = [
-            0xffd700, 0x0000ff, 0xff0000, 0x4b0082, 0xff8c00,
-            0x008000, 0x800000, 0x111111, 0xffff00, 0x000080
-        ];
-
+        // Susunan Triangulasi Bola
         function rackBalls() {
-            let index = 0;
-            const startZ = -3.5;
-            for (let r = 0; r < 4; r++) {
+            let idx = 1;
+            const startZ = -4;
+            for (let r = 0; r < 5; r++) {
                 for (let c = 0; c <= r; c++) {
                     const x = (c - r / 2) * (ballRadius * 2.1);
                     const z = startZ - (r * ballRadius * 1.9);
-                    createBall(x, z, ballColors[index % ballColors.length]);
-                    index++;
+                    createBall(x, z, ballData[idx]);
+                    idx++;
                 }
             }
         }
         rackBalls();
 
-        // --- Visual Stik & Garis Bidik ---
-        const cueGeo = new THREE.CylinderGeometry(0.06, 0.12, 8, 16);
-        const cueMat = new THREE.MeshStandardMaterial({ color: 0xd2b48c });
+        // --- Visual Stik & Garis Panduan Pembidik Pro ---
+        const cueGeo = new THREE.CylinderGeometry(0.05, 0.1, 9, 16);
+        const cueMat = new THREE.MeshStandardMaterial({ color: 0x8b5a2b });
         const cueMesh = new THREE.Mesh(cueGeo, cueMat);
         cueMesh.rotation.x = Math.PI / 2;
         scene.add(cueMesh);
 
-        const aimGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -8)]);
-        const aimMat = new THREE.LineDashedMaterial({ color: 0xffffff, dashSize: 0.3, gapSize: 0.15 });
-        const aimLine = new THREE.Line(aimGeo, aimMat);
+        // Line Proyeksi
+        const lineMat = new THREE.LineDashedMaterial({ color: 0xffffff, dashSize: 0.3, gapSize: 0.15 });
+        const lineGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,-12)]);
+        const aimLine = new THREE.Line(lineGeo, lineMat);
         aimLine.computeLineDistances();
         scene.add(aimLine);
 
-        // --- Kontrol User ---
+        // --- Input Controller ---
         window.addEventListener('keydown', (e) => {
             if (!canShoot || (gameMode === 'ai' && currentPlayer === 2)) return;
 
-            if (e.code === 'ArrowLeft') aimAngle += 0.04;
-            if (e.code === 'ArrowRight') aimAngle -= 0.04;
+            if (e.code === 'ArrowLeft') aimAngle += 0.03;
+            if (e.code === 'ArrowRight') aimAngle -= 0.03;
 
-            if (e.code === 'Space' && !isCharging) {
-                isCharging = true;
+            if (e.code === 'Space' && !isChargingPower) {
+                isChargingPower = true;
                 chargePower();
             }
         });
 
         window.addEventListener('keyup', (e) => {
-            if (e.code === 'Space' && isCharging) {
-                isCharging = false;
+            if (e.code === 'Space' && isChargingPower) {
+                isChargingPower = false;
                 shoot();
             }
         });
 
+        // Tetapkan Bidikan dengan Mouse
+        window.addEventListener('mousemove', (e) => {
+            if (!canShoot || (gameMode === 'ai' && currentPlayer === 2)) return;
+            if (e.buttons === 1) { // Left Mouse Drag
+                aimAngle -= e.movementX * 0.005;
+            }
+        });
+
         function chargePower() {
-            if (!isCharging) return;
+            if (!isChargingPower) return;
             power = (power + 2.5) % 100;
             document.getElementById('power-bar').style.height = power + '%';
             requestAnimationFrame(chargePower);
@@ -416,45 +469,45 @@
             cueMesh.visible = false;
             aimLine.visible = false;
 
-            const force = (power / 100) * 18;
+            const force = (power / 100) * 22;
             const fx = Math.sin(aimAngle) * force;
             const fz = -Math.cos(aimAngle) * force;
 
-            cueBall.body.applyImpulse(new CANNON.Vec3(fx, 0, fz), cueBall.body.position);
+            balls[0].body.applyImpulse(new CANNON.Vec3(fx, 0, fz), balls[0].body.position);
             
             power = 0;
             document.getElementById('power-bar').style.height = '0%';
 
-            setTimeout(checkBallsStopped, 2000);
+            setTimeout(checkStopped, 2000);
         }
 
-        function checkBallsStopped() {
-            const checkInterval = setInterval(() => {
-                let allStopped = true;
+        function checkStopped() {
+            const checkInt = setInterval(() => {
+                let stopped = true;
                 for (let b of ballBodies) {
-                    if (b.velocity.length() > 0.05 || b.angularVelocity.length() > 0.05) {
-                        allStopped = false;
+                    if (b.velocity.length() > 0.04 || b.angularVelocity.length() > 0.04) {
+                        stopped = false;
                         break;
                     }
                 }
 
-                if (allStopped) {
-                    clearInterval(checkInterval);
+                if (stopped) {
+                    clearInterval(checkInt);
                     switchTurn();
                 }
-            }, 500);
+            }, 400);
         }
 
-        // --- Manajemen Turn & Timer ---
+        // --- Manajemen Turn & Aturan 8-Ball ---
         function startTimer() {
             clearInterval(timerInterval);
-            timeLeft = 30;
-            document.getElementById('timer').innerText = timeLeft;
+            timer = 30;
+            document.getElementById('timer-box').innerText = timer;
 
             timerInterval = setInterval(() => {
-                timeLeft--;
-                document.getElementById('timer').innerText = timeLeft;
-                if (timeLeft <= 0) {
+                timer--;
+                document.getElementById('timer-box').innerText = timer;
+                if (timer <= 0) {
                     showNotification("Waktu Habis!");
                     switchTurn();
                 }
@@ -465,8 +518,8 @@
             clearInterval(timerInterval);
             currentPlayer = currentPlayer === 1 ? 2 : 1;
 
-            document.getElementById('p1-status').classList.toggle('active-player', currentPlayer === 1);
-            document.getElementById('p2-status').classList.toggle('active-player', currentPlayer === 2);
+            document.getElementById('p1-card').classList.toggle('active', currentPlayer === 1);
+            document.getElementById('p2-card').classList.toggle('active', currentPlayer === 2);
 
             canShoot = true;
             cueMesh.visible = true;
@@ -481,26 +534,35 @@
             }
         }
 
-        // --- Komputer / AI ---
+        // --- kecerdasan AI ---
         function playAI() {
             let error = 0;
-            if (aiLevel === 'easy') error = (Math.random() - 0.5) * 0.4;
-            if (aiLevel === 'medium') error = (Math.random() - 0.5) * 0.15;
-            if (aiLevel === 'hard') error = (Math.random() - 0.5) * 0.03;
+            if (aiLevel === 'easy') error = (Math.random() - 0.5) * 0.35;
+            if (aiLevel === 'medium') error = (Math.random() - 0.5) * 0.12;
+            if (aiLevel === 'hard') error = (Math.random() - 0.5) * 0.02;
 
-            // Incar bola target pertama
-            let target = ballBodies[1];
-            if (target.position.y < -1) target = ballBodies[2];
+            let target = balls[1].body;
+            for (let i = 1; i < balls.length; i++) {
+                if (balls[i].body.position.y > -0.5) {
+                    target = balls[i].body;
+                    break;
+                }
+            }
 
-            const dx = target.position.x - cueBall.body.position.x;
-            const dz = target.position.z - cueBall.body.position.z;
+            const dx = target.position.x - balls[0].body.position.x;
+            const dz = target.position.z - balls[0].body.position.z;
             aimAngle = Math.atan2(dx, -dz) + error;
 
-            power = aiLevel === 'hard' ? 75 : 55;
+            power = aiLevel === 'hard' ? 70 : 50;
             shoot();
         }
 
-        // --- Notifikasi & Pengaturan ---
+        // --- UI & Kamera ---
+        function toggleCameraView() {
+            cameraMode3D = !cameraMode3D;
+            document.getElementById('cam-mode-text').innerText = cameraMode3D ? "3D" : "2D (Atas)";
+        }
+
         function showNotification(msg) {
             const el = document.getElementById('notification');
             el.innerText = msg;
@@ -508,87 +570,92 @@
             setTimeout(() => { el.style.opacity = 0; }, 1800);
         }
 
-        function changeMode(val) {
-            gameMode = val;
-            document.getElementById('p2-status').childNodes[0].nodeValue = val === 'ai' ? "P2 (Komputer): " : "P2 (Pemain 2): ";
+        function setGameMode(v) {
+            gameMode = v;
+            document.getElementById('p2-name').innerText = v === 'ai' ? "Komputer" : "Pemain 2";
             resetGame();
         }
 
-        function changeLevel(val) {
-            aiLevel = val;
+        function setAiLevel(v) {
+            aiLevel = v;
         }
 
         function resetGame() {
-            cueBall.body.position.set(0, ballRadius, 4.5);
-            cueBall.body.velocity.set(0, 0, 0);
-            cueBall.body.angularVelocity.set(0, 0, 0);
+            balls[0].body.position.set(0, ballRadius, 5);
+            balls[0].body.velocity.set(0, 0, 0);
 
             currentPlayer = 1;
-            p1Score = 0; p2Score = 0;
-            document.getElementById('p1-score').innerText = '0';
-            document.getElementById('p2-score').innerText = '0';
-
-            document.getElementById('p1-status').classList.add('active-player');
-            document.getElementById('p2-status').classList.remove('active-player');
+            document.getElementById('p1-card').classList.add('active');
+            document.getElementById('p2-card').classList.remove('active');
 
             canShoot = true;
             cueMesh.visible = true;
             aimLine.visible = true;
 
-            showNotification("Game Dimulai!");
+            showNotification("Mulai Game!");
             startTimer();
         }
 
-        // --- Render Loop ---
+        // --- Render Loop & Kamera Mengikuti Arah Stik ---
         function animate() {
             requestAnimationFrame(animate);
             world.step(1 / 60);
 
-            // Synchronize Visuals with Physics Bodies
-            for (let i = 0; i < balls.length; i++) {
-                balls[i].position.copy(ballBodies[i].position);
-                balls[i].quaternion.copy(ballBodies[i].quaternion);
+            // Sinkronkan Fisika dengan Bola Visual
+            for (let b of balls) {
+                b.mesh.position.copy(b.body.position);
+                b.mesh.quaternion.copy(b.body.quaternion);
 
-                // Cek jika bola masuk ke lubang (pocket)
+                // Cek Masuk Lubang (Pockets)
                 pockets.forEach(p => {
-                    const dist = Math.hypot(ballBodies[i].position.x - p.x, ballBodies[i].position.z - p.z);
-                    if (dist < pocketRadius && ballBodies[i].position.y > -0.5) {
+                    const dist = Math.hypot(b.body.position.x - p.x, b.body.position.z - p.z);
+                    if (dist < pocketRadius && b.body.position.y > -0.5) {
                         playSound('pocket');
-                        if (i === 0) { // Bola putih masuk
+                        if (b.info.num === 0) { // Cue ball foul
                             showNotification("Foul! Bola Putih Masuk");
-                            ballBodies[i].position.set(0, ballRadius, 4.5);
-                            ballBodies[i].velocity.set(0, 0, 0);
-                        } else { // Bola warna masuk
-                            if (currentPlayer === 1) p1Score += 10; else p2Score += 10;
-                            document.getElementById('p1-score').innerText = p1Score;
-                            document.getElementById('p2-score').innerText = p2Score;
-                            ballBodies[i].position.set(100, -10, 0); // Pindahkan keluar meja
-                            ballBodies[i].velocity.set(0, 0, 0);
+                            b.body.position.set(0, ballRadius, 5);
+                            b.body.velocity.set(0,0,0);
+                        } else {
+                            b.body.position.set(100, -10, 0); // Pindahkan keluar
+                            b.body.velocity.set(0,0,0);
                         }
                     }
                 });
             }
 
-            // Stik dan Garis Arah Tembakan
+            // Kontrol Posisi Kamera
+            const cuePos = balls[0].mesh.position;
+            if (cameraMode3D) {
+                const camDist = 14;
+                camera.position.x = cuePos.x - Math.sin(aimAngle) * camDist;
+                camera.position.z = cuePos.z + Math.cos(aimAngle) * camDist;
+                camera.position.y = 12;
+                camera.lookAt(cuePos.x, cuePos.y, cuePos.z);
+            } else { // 2D Top View
+                camera.position.set(0, 24, 0);
+                camera.lookAt(0, 0, 0);
+            }
+
+            // Stik & Garis Arah Tembakan
             if (canShoot) {
-                aimLine.position.copy(cueBall.mesh.position);
+                aimLine.position.copy(cuePos);
                 aimLine.rotation.y = aimAngle;
 
-                const cueDist = 4.2 + (power / 100) * 1.5;
-                cueMesh.position.x = cueBall.mesh.position.x - Math.sin(aimAngle) * cueDist;
-                cueMesh.position.z = cueBall.mesh.position.z + Math.cos(aimAngle) * cueDist;
-                cueMesh.position.y = ballRadius + 0.2;
+                const cueOffset = 4.8 + (power / 100) * 1.8;
+                cueMesh.position.x = cuePos.x - Math.sin(aimAngle) * cueOffset;
+                cueMesh.position.z = cuePos.z + Math.cos(aimAngle) * cueOffset;
+                cueMesh.position.y = ballRadius + 0.15;
                 cueMesh.rotation.y = aimAngle;
             }
 
             renderer.render(scene, camera);
         }
 
-        // Inisialisasi Game
+        // Jalankan Game
         startTimer();
         animate();
 
-        // Screen Resize
+        // Responsive Resize
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
@@ -596,4 +663,4 @@
         });
     </script>
 </body>
-</html>aaaaa
+</html>
