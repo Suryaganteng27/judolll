@@ -44,6 +44,14 @@
             box-shadow: 0 8px 32px rgba(0,0,0,0.6);
         }
 
+        .hud-logo {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
         .top-bar {
             display: flex;
             justify-content: space-between;
@@ -166,6 +174,7 @@
     <div id="ui-layer">
         <div class="top-bar">
             <div class="hud-panel">
+                <img src="https://raw.githubusercontent.com/Suryaganteng27/judolll/5ea3a43aa31f3a9c539d8754484e3570d2fbba8c/logo.jpeg" alt="Logo Game" class="hud-logo">
                 <div class="player-card active" id="p1-card">
                     <div class="player-name">Pemain 1</div>
                 </div>
@@ -176,6 +185,7 @@
 
             <div class="hud-panel">
                 <div id="timer-box">30</div>
+                <img src="https://raw.githubusercontent.com/Suryaganteng27/judolll/5ea3a43aa31f3a9c539d8754484e3570d2fbba8c/smkn.jpeg" alt="Logo SMKN" class="hud-logo">
             </div>
         </div>
 
@@ -267,22 +277,25 @@
         dirLight.shadow.mapSize.height = 2048;
         scene.add(dirLight);
 
-        // World Physics dengan Kontak Material Sangat Memantul/Enteng
+        // World Physics
         const world = new CANNON.World();
         world.gravity.set(0, -9.82, 0);
 
         const ballMaterial = new CANNON.Material("ballMaterial");
         const ballContactMaterial = new CANNON.ContactMaterial(ballMaterial, ballMaterial, {
-            friction: 0.1,         // Gesekan antar bola sangat minim
-            restitution: 0.85      // Pantulan lenting sempurna (ringan & memantul)
+            friction: 0.1,
+            restitution: 0.85
         });
         world.addContactMaterial(ballContactMaterial);
 
-        // --- Meja Biliar ---
+        // --- Meja Biliar dengan Gambar Tekstur ---
         const tableW = 10, tableL = 20;
 
+        const textureLoader = new THREE.TextureLoader();
+        const clothTexture = textureLoader.load('https://raw.githubusercontent.com/Suryaganteng27/judolll/5ea3a43aa31f3a9c539d8754484e3570d2fbba8c/loggo.jpeg');
+
         const tableGeo = new THREE.BoxGeometry(tableW, 0.4, tableL);
-        const tableMat = new THREE.MeshStandardMaterial({ color: 0x0c6838, roughness: 0.25 });
+        const tableMat = new THREE.MeshStandardMaterial({ map: clothTexture, roughness: 0.25 });
         const tableMesh = new THREE.Mesh(tableGeo, tableMat);
         tableMesh.position.y = -0.2;
         tableMesh.receiveShadow = true;
@@ -327,7 +340,7 @@
         createCushion(0, -10.3, tableW, 0.6);
         createCushion(0, 10.3, tableW, 0.6);
 
-        // --- Generator Tekstur Bola Realistis Dengan Angka ---
+        // --- Generator Tekstur Bola Realistis ---
         function createBallTexture(num, color, isStriped) {
             const canvas = document.createElement('canvas');
             canvas.width = 256;
@@ -343,13 +356,11 @@
             }
 
             if (num > 0) {
-                // Lingkaran Putih Angka
                 ctx.fillStyle = '#ffffff';
                 ctx.beginPath();
                 ctx.arc(128, 64, 22, 0, Math.PI * 2);
                 ctx.fill();
 
-                // Teks Angka
                 ctx.fillStyle = '#000000';
                 ctx.font = 'bold 24px Arial';
                 ctx.textAlign = 'center';
@@ -357,11 +368,10 @@
                 ctx.fillText(num.toString(), 128, 65);
             }
 
-            const texture = new THREE.CanvasTexture(canvas);
-            return texture;
+            return new THREE.CanvasTexture(canvas);
         }
 
-        // --- Inisialisasi Bola (Dengan Fisika Ringan) ---
+        // --- Inisialisasi Bola ---
         const ballRadius = 0.32;
         const balls = [];
         const ballBodies = [];
@@ -389,7 +399,6 @@
             const texture = createBallTexture(cfg.num, cfg.color, cfg.striped);
             const geo = new THREE.SphereGeometry(ballRadius, 32, 32);
             
-            // Material mengkilap seperti Akrilik / Fenolik
             const mat = new THREE.MeshStandardMaterial({ 
                 map: texture, 
                 roughness: 0.1, 
@@ -400,8 +409,6 @@
             scene.add(mesh);
 
             const shape = new CANNON.Sphere(ballRadius);
-            
-            // Massa Ringan (0.17 kg) + Damping Rendah (0.08) = Bola Berkesan Enteng & Cepat
             const body = new CANNON.Body({ 
                 mass: 0.17, 
                 shape: shape,
@@ -491,7 +498,6 @@
             cueMesh.visible = false;
             aimLine.visible = false;
 
-            // Dorongan yang disesuaikan dengan massa bola ringan
             const force = (power / 100) * 8.5;
             const fx = Math.sin(aimAngle) * force;
             const fz = -Math.cos(aimAngle) * force;
@@ -624,17 +630,15 @@
             requestAnimationFrame(animate);
             world.step(1 / 60);
 
-            // Synchronize Visuals & Physics
             for (let b of balls) {
                 b.mesh.position.copy(b.body.position);
                 b.mesh.quaternion.copy(b.body.quaternion);
 
-                // Cek Masuk Pocket
                 pockets.forEach(p => {
                     const dist = Math.hypot(b.body.position.x - p.x, b.body.position.z - p.z);
                     if (dist < pocketRadius && b.body.position.y > -0.5) {
                         playSound('pocket');
-                        if (b.num === 0) { // Cue ball
+                        if (b.num === 0) {
                             showNotification("Foul! Bola Putih Masuk");
                             b.body.position.set(0, ballRadius, 5);
                             b.body.velocity.set(0,0,0);
@@ -646,7 +650,6 @@
                 });
             }
 
-            // Kamera
             const cuePos = balls[0].mesh.position;
             if (cameraMode3D) {
                 const camDist = 13;
@@ -659,7 +662,6 @@
                 camera.lookAt(0, 0, 0);
             }
 
-            // Stik Biliar & Line
             if (canShoot) {
                 aimLine.position.copy(cuePos);
                 aimLine.rotation.y = aimAngle;
